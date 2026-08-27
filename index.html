@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Minha Carteira — Ações</title>
+
+<!-- PWA / "Adicionar à Tela de Início" (iPhone) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Carteira">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface-1:   #fcfcfb;
+    --surface-2:   #ffffff;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --good:        #006300;
+    --good-bg:     #e6f3e6;
+    --critical:    #d03b3b;
+    --critical-bg: #fbeaea;
+    --accent:      #2a78d6;
+    --accent-bg:   #e8f0fb;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:        #0d0d0d;
+      --surface-1:   #1a1a19;
+      --surface-2:   #201f1e;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --good:        #0ca30c;
+      --good-bg:     rgba(12,163,12,0.14);
+      --critical:    #e66767;
+      --critical-bg: rgba(230,103,103,0.14);
+      --accent:      #3987e5;
+      --accent-bg:   rgba(57,135,229,0.14);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:        #0d0d0d;
+    --surface-1:   #1a1a19;
+    --surface-2:   #201f1e;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --good:        #0ca30c;
+    --good-bg:     rgba(12,163,12,0.14);
+    --critical:    #e66767;
+    --critical-bg: rgba(230,103,103,0.14);
+    --accent:      #3987e5;
+    --accent-bg:   rgba(57,135,229,0.14);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    padding: calc(24px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(64px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+
+  h1 { font-size: 1.4rem; margin: 0 0 2px; }
+  .subtitle { color: var(--text-secondary); font-size: 0.88rem; margin: 0 0 20px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 18px;
+  }
+  .toolbar .grow { flex: 1 1 220px; }
+  label.small { font-size: 0.74rem; color: var(--text-muted); display: block; margin-bottom: 3px; }
+  input[type="text"], input[type="password"], input[type="number"], select {
+    font-family: inherit; font-size: 0.85rem; color: var(--text-primary);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px;
+    padding: 7px 9px; width: 100%;
+  }
+  button {
+    font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    border-radius: 7px; border: 1px solid var(--border); padding: 8px 14px;
+    background: var(--surface-2); color: var(--text-primary);
+  }
+  button.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  button.ghost { background: transparent; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .status-line { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; }
+  .status-line.err { color: var(--critical); }
+  .status-line.ok { color: var(--good); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px; margin-bottom: 18px;
+  }
+  .stat-tile {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; min-width: 0;
+  }
+  .stat-tile .label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px; }
+  .stat-tile .value { font-size: 1.35rem; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  @media (max-width: 480px) {
+    .stats { grid-template-columns: 1fr; }
+    .stat-tile { padding: 12px 16px; }
+  }
+  .stat-tile .delta { font-size: 0.78rem; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .up { color: var(--good); } .down { color: var(--critical); }
+
+  .table-card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; margin-bottom: 16px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  thead th {
+    text-align: right; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--text-muted); font-weight: 600; padding: 10px 10px; border-bottom: 1px solid var(--gridline);
+    white-space: nowrap;
+  }
+  thead th:first-child, tbody td:first-child { text-align: left; }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid var(--gridline); text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(128,128,128,0.06); }
+  .ticker-cell { text-align: left; font-weight: 650; }
+  .ticker-cell .sub { display:block; font-weight: 400; color: var(--text-muted); font-size: 0.72rem; }
+  td input[type="number"] {
+    width: 84px; text-align: right; padding: 4px 6px; font-size: 0.82rem;
+  }
+  .weight-bar-wrap { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+  .weight-bar-track { width: 60px; height: 6px; border-radius: 3px; background: var(--gridline); overflow: hidden; }
+  .weight-bar-fill { height: 100%; border-radius: 3px; }
+  .rm-btn { background: transparent; border: none; color: var(--text-muted); font-size: 0.95rem; cursor: pointer; padding: 2px 6px; }
+  .rm-btn:hover { color: var(--critical); }
+  .add-row { padding: 10px 14px; border-top: 1px solid var(--gridline); display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .add-row .field { display: flex; flex-direction: column; gap: 3px; }
+  .add-row input { width: 110px; }
+
+  details.help {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 16px; font-size: 0.83rem; color: var(--text-secondary); line-height: 1.55;
+  }
+  details.help summary { cursor: pointer; font-weight: 600; color: var(--text-primary); }
+  details.help a { color: var(--accent); }
+  details.help code { background: var(--gridline); padding: 1px 5px; border-radius: 4px; font-size: 0.8em; }
+  .legend-swatch { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+
+  .ticker-row { display: inline-flex; align-items: center; gap: 8px; }
+  .logo-badge {
+    position: relative; width: 24px; height: 24px; border-radius: 50%; flex: 0 0 auto;
+    background: #ffffff; overflow: hidden;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .logo-badge .logo-fallback {
+    font-size: 9px; font-weight: 700; color: #ffffff; letter-spacing: 0.02em;
+  }
+  .logo-badge img.logo-img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 2px;
+    background: #ffffff;
+  }
+
+  @media (max-width: 640px) {
+    .table-card { overflow-x: auto; }
+    table { min-width: 720px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Minha Carteira — Ações</h1>
+  <p class="subtitle">Posições digitadas manualmente · cotações ao vivo via <a href="https://brapi.dev" target="_blank" rel="noopener" style="color:var(--accent)">brapi.dev</a></p>
+
+  <div class="toolbar">
+    <div class="grow">
+      <label class="small" for="token-input">Token brapi.dev (grátis) — necessário para a maioria dos tickers</label>
+      <input type="password" id="token-input" placeholder="cole seu token aqui" autocomplete="off">
+    </div>
+    <div>
+      <label class="small" for="interval-select">Atualizar a cada</label>
+      <select id="interval-select">
+        <option value="0">Manual</option>
+        <option value="60000">60s</option>
+        <option value="300000" selected>5 min</option>
+        <option value="600000">10 min</option>
+        <option value="1800000">30 min</option>
+      </select>
+    </div>
+    <button class="primary" id="refresh-btn">Atualizar agora</button>
+    <span class="status-line" id="status-line">carregando…</span>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Ativo</th>
+          <th>Qtd.</th>
+          <th>Preço médio</th>
+          <th>Preço atual</th>
+          <th>Var. dia</th>
+          <th>Investido</th>
+          <th>Valor atual</th>
+          <th>P&amp;L</th>
+          <th>P&amp;L %</th>
+          <th>Peso</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="add-row">
+      <div class="field">
+        <label class="small">Ticker</label>
+        <input type="text" id="new-ticker" placeholder="ex: ITSA4" style="text-transform:uppercase; width:100px;">
+      </div>
+      <div class="field">
+        <label class="small">Qtd.</label>
+        <input type="number" id="new-qty" placeholder="0" min="0" step="1">
+      </div>
+      <div class="field">
+        <label class="small">Preço médio (R$)</label>
+        <input type="number" id="new-avg" placeholder="0,00" min="0" step="0.01">
+      </div>
+      <button id="add-btn">+ Adicionar ativo</button>
+    </div>
+  </div>
+
+  <details class="help">
+    <summary>Como isso funciona / avisos</summary>
+    <div style="margin-top:10px;">
+      <p><strong>Posições:</strong> este arquivo não se conecta à sua conta na XP — a XP não oferece isso para pessoa física. Os tickers, quantidades e preço médio abaixo foram tirados do print que você me enviou; edite os campos de <em>Qtd.</em> e <em>Preço médio</em> diretamente na tabela sempre que comprar/vender, ou apague/adicione ativos. Tudo fica salvo neste navegador (não é enviado a lugar nenhum).</p>
+      <p><strong>Cotações:</strong> os preços atuais vêm da API pública gratuita <a href="https://brapi.dev" target="_blank" rel="noopener">brapi.dev</a>. PETR4, VALE3, ITUB4 e MGLU3 funcionam sem cadastro; qualquer outro ticker (BBSE3, AXIA3, BBAS3, SAPR11, etc.) exige um <strong>token gratuito</strong> — crie uma conta em <a href="https://brapi.dev/dashboard" target="_blank" rel="noopener">brapi.dev/dashboard</a> e cole o token no campo acima. O plano grátis só aceita 1 ativo por requisição, então o dashboard busca cada ativo separadamente (por isso o intervalo padrão é 5 min, não instantâneo — sem problema, já que não é preciso tempo real).</p>
+      <p><strong>Privacidade do token:</strong> como é um arquivo local que só você abre, é seguro colar seu token aqui — mas <strong>não compartilhe este arquivo</strong> com mais ninguém depois de colar o token, porque ele fica visível no código da página.</p>
+      <p><strong>Abra fora do chat:</strong> baixe o arquivo e abra num navegador normal (Chrome, etc.) — dentro de uma pré-visualização em iframe as cotações ao vivo podem não carregar.</p>
+      <p>Se a atualização der erro persistente, pode ser bloqueio de CORS do provedor — nesse caso me avise para eu trocar de fonte de dados.</p>
+    </div>
+  </details>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "carteira_dashboard_v1";
+  var FREE_TICKERS = ["PETR4", "VALE3", "ITUB4", "MGLU3"];
+  var SLOT_COLORS = ["--s1","--s2","--s3","--s4","--s5","--s6","--s7","--s8"];
+
+  var DEFAULT_POSITIONS = [
+    { ticker: "BBSE3",  qty: 4000, avg: 35.55, last: 39.41 },
+    { ticker: "VALE3",  qty: 2000, avg: 79.15, last: 78.45 },
+    { ticker: "AXIA3",  qty: 2300, avg: 60.50, last: 53.41 },
+    { ticker: "BBAS3",  qty: 4000, avg: 22.55, last: 19.52 },
+    { ticker: "SAPR11", qty: 2000, avg: 31.14, last: 33.26 },
+    { ticker: "PETR4",  qty: 60,   avg: 31.45, last: 41.45 }
+  ];
+
+  var state = {
+    token: "",
+    interval: 300000,
+    positions: [],
+    lastUpdated: null
+  };
+
+  function safeLocalStorageGet(key) {
+    try { return window.localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function safeLocalStorageSet(key, val) {
+    try { window.localStorage.setItem(key, val); } catch (e) { /* ignore */ }
+  }
+
+  function loadState() {
+    var raw = safeLocalStorageGet(STORAGE_KEY);
+    if (raw) {
+      try {
+        var parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.positions) && parsed.positions.length) {
+          state.positions = parsed.positions.map(function (p) {
+            return { ticker: String(p.ticker || "").toUpperCase(), qty: Number(p.qty) || 0, avg: Number(p.avg) || 0, last: Number(p.last) || 0, dayChangePct: null, dayChangeAbs: null, logo: p.logo || null, error: null };
+          });
+          state.token = parsed.token || "";
+          state.interval = parsed.interval != null ? parsed.interval : 300000;
+          return;
+        }
+      } catch (e) { /* fall through to defaults */ }
+    }
+    state.positions = DEFAULT_POSITIONS.map(function (p) {
+      return { ticker: p.ticker, qty: p.qty, avg: p.avg, last: p.last, dayChangePct: null, dayChangeAbs: null, logo: null, error: null };
+    });
+  }
+
+  function persist() {
+    var toSave = {
+      token: state.token,
+      interval: state.interval,
+      positions: state.positions.map(function (p) {
+        return { ticker: p.ticker, qty: p.qty, avg: p.avg, last: p.last, logo: p.logo || null };
+      })
+    };
+    safeLocalStorageSet(STORAGE_KEY, JSON.stringify(toSave));
+  }
+
+  function initials(ticker) {
+    var letters = String(ticker || "").replace(/[0-9]+$/, "");
+    return (letters.slice(0, 2) || String(ticker || "").slice(0, 2) || "?").toUpperCase();
+  }
+
+  var fmtBRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+  var fmtPct = function (v, digits) {
+    if (v == null || isNaN(v)) return "—";
+    digits = digits == null ? 2 : digits;
+    var s = v.toFixed(digits).replace(".", ",");
+    return (v > 0 ? "+" : "") + s + "%";
+  };
+
+  function computeDerived() {
+    var totalInvested = 0, totalCurrent = 0, totalDayGain = 0, totalPrevCloseValue = 0, hasDayData = false;
+    state.positions.forEach(function (p) {
+      p.invested = p.qty * p.avg;
+      p.currentValue = p.qty * (p.last || 0);
+      p.pnl = p.currentValue - p.invested;
+      p.pnlPct = p.invested > 0 ? (p.pnl / p.invested) * 100 : null;
+      totalInvested += p.invested;
+      totalCurrent += p.currentValue;
+
+      if (p.dayChangeAbs != null && !isNaN(p.dayChangeAbs)) {
+        var dayGain = p.qty * p.dayChangeAbs;
+        p.dayGain = dayGain;
+        totalDayGain += dayGain;
+        totalPrevCloseValue += p.qty * ((p.last || 0) - p.dayChangeAbs);
+        hasDayData = true;
+      } else {
+        p.dayGain = null;
+      }
+    });
+    state.positions.forEach(function (p) {
+      p.weightPct = totalCurrent > 0 ? (p.currentValue / totalCurrent) * 100 : 0;
+    });
+    return {
+      totalInvested: totalInvested,
+      totalCurrent: totalCurrent,
+      totalPnl: totalCurrent - totalInvested,
+      totalPnlPct: totalInvested > 0 ? ((totalCurrent - totalInvested) / totalInvested) * 100 : null,
+      totalDayGain: hasDayData ? totalDayGain : null,
+      totalDayGainPct: (hasDayData && totalPrevCloseValue > 0) ? (totalDayGain / totalPrevCloseValue) * 100 : null
+    };
+  }
+
+  function renderStats(totals) {
+    var el = document.getElementById("stats");
+    var pnlCls = totals.totalPnl >= 0 ? "up" : "down";
+    var dayCls = totals.totalDayGain != null ? (totals.totalDayGain >= 0 ? "up" : "down") : "";
+    el.innerHTML =
+      tile("Valor investido", fmtBRL.format(totals.totalInvested)) +
+      tile("Valor atual", fmtBRL.format(totals.totalCurrent)) +
+      tile("P&L", fmtBRL.format(totals.totalPnl), fmtPct(totals.totalPnlPct), pnlCls) +
+      tile("Ganho/perda do dia", totals.totalDayGain != null ? fmtBRL.format(totals.totalDayGain) : "—", totals.totalDayGainPct != null ? fmtPct(totals.totalDayGainPct) : "", dayCls) +
+      tile("Ativos", String(state.positions.length));
+  }
+  function tile(label, value, delta, cls) {
+    return '<div class="stat-tile"><div class="label">' + label + '</div><div class="value">' + value + '</div>' +
+      (delta ? '<div class="delta ' + (cls||"") + '">' + delta + '</div>' : '') + '</div>';
+  }
+
+  function renderTable() {
+    var tbody = document.getElementById("tbody");
+    var rows = "";
+    state.positions.forEach(function (p, i) {
+      var color = "var(" + SLOT_COLORS[i % SLOT_COLORS.length] + ")";
+      var pnlCls = p.pnl >= 0 ? "up" : "down";
+      var dayCls = (p.dayChangePct != null && p.dayChangePct < 0) ? "down" : (p.dayChangePct != null ? "up" : "");
+      rows += '<tr>' +
+        '<td class="ticker-cell"><span class="ticker-row">' +
+          '<span class="logo-badge" style="background:' + color + '">' +
+            '<span class="logo-fallback">' + initials(p.ticker) + '</span>' +
+            (p.logo ? '<img class="logo-img" src="' + p.logo + '" alt="" onerror="this.style.display=\'none\'">' : '') +
+          '</span>' +
+          '<span>' + p.ticker +
+            (p.error ? '<span class="sub" style="color:var(--critical)">' + p.error + '</span>' : '') +
+          '</span>' +
+        '</span></td>' +
+        '<td><input type="number" min="0" step="1" value="' + p.qty + '" data-idx="' + i + '" data-field="qty" class="edit-input"></td>' +
+        '<td><input type="number" min="0" step="0.01" value="' + p.avg + '" data-idx="' + i + '" data-field="avg" class="edit-input"></td>' +
+        '<td>' + (p.last ? fmtBRL.format(p.last) : "—") + '</td>' +
+        '<td class="' + dayCls + '">' + (p.dayChangePct != null ? fmtPct(p.dayChangePct) : "—") + '</td>' +
+        '<td>' + fmtBRL.format(p.invested) + '</td>' +
+        '<td>' + fmtBRL.format(p.currentValue) + '</td>' +
+        '<td class="' + pnlCls + '">' + fmtBRL.format(p.pnl) + '</td>' +
+        '<td class="' + pnlCls + '">' + (p.pnlPct != null ? fmtPct(p.pnlPct) : "—") + '</td>' +
+        '<td><div class="weight-bar-wrap"><span>' + p.weightPct.toFixed(1) + '%</span><span class="weight-bar-track"><span class="weight-bar-fill" style="width:' + Math.min(100, p.weightPct) + '%; background:' + color + '"></span></span></div></td>' +
+        '<td><button class="rm-btn" data-idx="' + i + '" title="Remover">✕</button></td>' +
+        '</tr>';
+    });
+    tbody.innerHTML = rows;
+
+    Array.prototype.forEach.call(document.querySelectorAll(".edit-input"), function (inp) {
+      inp.addEventListener("change", function () {
+        var idx = Number(inp.getAttribute("data-idx"));
+        var field = inp.getAttribute("data-field");
+        var val = parseFloat(inp.value.replace(",", "."));
+        state.positions[idx][field] = isNaN(val) ? 0 : val;
+        persist();
+        rerender();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".rm-btn"), function (btn) {
+      btn.addEventListener("click", function () {
+        var idx = Number(btn.getAttribute("data-idx"));
+        state.positions.splice(idx, 1);
+        persist();
+        rerender();
+      });
+    });
+  }
+
+  function rerender() {
+    var totals = computeDerived();
+    renderStats(totals);
+    renderTable();
+  }
+
+  function setStatus(msg, kind) {
+    var el = document.getElementById("status-line");
+    el.textContent = msg;
+    el.className = "status-line" + (kind ? " " + kind : "");
+  }
+
+  function buildUrl(ticker, token) {
+    var url = "https://brapi.dev/api/quote/" + encodeURIComponent(ticker);
+    if (token) url += "?token=" + encodeURIComponent(token);
+    return url;
+  }
+
+  function extractResults(data) {
+    if (!data) return [];
+    if (Array.isArray(data.results)) return data.results;
+    if (Array.isArray(data.stocks)) return data.stocks;
+    if (Array.isArray(data)) return data;
+    return [];
+  }
+
+  function delay(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+
+  // O plano grátis da brapi.dev aceita só 1 ativo por requisição — então buscamos
+  // um ticker por vez (nunca em lote), com uma pequena pausa entre chamadas.
+  // Nunca deixa o Promise rejeitar: devolve sempre {ticker, ok, result, error}.
+  function fetchOneTicker(ticker, token) {
+    var needsToken = FREE_TICKERS.indexOf(ticker) === -1;
+    if (needsToken && !token) {
+      return Promise.resolve({ ticker: ticker, ok: false, result: null, error: null, skippedNoToken: true });
+    }
+    return fetch(buildUrl(ticker, needsToken ? token : null))
+      .then(function (res) {
+        if (!res.ok) return res.json().catch(function () { return null; }).then(function (body) {
+          var detail = body && (body.message || body.error) ? (" — " + (body.message || body.error)) : "";
+          throw new Error("HTTP " + res.status + detail);
+        });
+        return res.json();
+      })
+      .then(function (data) {
+        var results = extractResults(data);
+        return { ticker: ticker, ok: true, result: results[0] || null, error: null };
+      })
+      .catch(function (err) {
+        return { ticker: ticker, ok: false, result: null, error: err.message };
+      });
+  }
+
+  function findPosition(ticker) {
+    for (var i = 0; i < state.positions.length; i++) {
+      if (state.positions[i].ticker === ticker) return state.positions[i];
+    }
+    return null;
+  }
+
+  function fetchQuotes() {
+    var tickers = state.positions.map(function (p) { return p.ticker; }).filter(Boolean);
+    if (!tickers.length) { setStatus("nenhum ativo na carteira", ""); return; }
+
+    document.getElementById("refresh-btn").disabled = true;
+    setStatus("atualizando cotações… (0/" + tickers.length + ")", "");
+
+    var outcomes = [];
+    var chain = Promise.resolve();
+    tickers.forEach(function (ticker, idx) {
+      chain = chain.then(function () {
+        return fetchOneTicker(ticker, state.token).then(function (outcome) {
+          outcomes.push(outcome);
+          setStatus("atualizando cotações… (" + outcomes.length + "/" + tickers.length + ")", "");
+          if (idx < tickers.length - 1) return delay(350); // respeita o limite de requisições do plano grátis
+        });
+      });
+    });
+
+    chain.then(function () {
+      var anyOk = false, anyErr = false;
+      outcomes.forEach(function (o) {
+        var p = findPosition(o.ticker);
+        if (!p) return;
+        if (o.skippedNoToken) {
+          p.error = "precisa de token";
+          anyErr = true;
+          return;
+        }
+        var r = o.result;
+        if (o.ok && r && r.regularMarketPrice != null) {
+          p.last = Number(r.regularMarketPrice);
+          p.dayChangePct = r.regularMarketChangePercent != null ? Number(r.regularMarketChangePercent) : null;
+          if (r.regularMarketChange != null && !isNaN(Number(r.regularMarketChange))) {
+            p.dayChangeAbs = Number(r.regularMarketChange);
+          } else if (p.dayChangePct != null) {
+            p.dayChangeAbs = p.last - (p.last / (1 + p.dayChangePct / 100));
+          } else {
+            p.dayChangeAbs = null;
+          }
+          var logoUrl = r.logourl || r.logoUrl || r.logo || null;
+          if (logoUrl) p.logo = logoUrl;
+          p.error = null;
+          anyOk = true;
+        } else {
+          p.error = o.error || "sem cotação";
+          anyErr = true;
+        }
+      });
+
+      state.lastUpdated = new Date();
+      persist();
+      rerender();
+      var stamp = state.lastUpdated.toLocaleTimeString("pt-BR");
+      if (anyOk && !anyErr) setStatus("atualizado às " + stamp, "ok");
+      else if (anyOk && anyErr) setStatus("atualizado parcialmente às " + stamp + " — veja avisos na tabela", "");
+      else setStatus("não foi possível obter cotações — veja avisos na tabela", "err");
+    }).finally(function () {
+      document.getElementById("refresh-btn").disabled = false;
+    });
+  }
+
+  var timer = null;
+  function scheduleAuto() {
+    if (timer) clearInterval(timer);
+    if (state.interval > 0) {
+      timer = setInterval(fetchQuotes, state.interval);
+    }
+  }
+
+  function init() {
+    loadState();
+    rerender();
+
+    var tokenInput = document.getElementById("token-input");
+    tokenInput.value = state.token;
+    tokenInput.addEventListener("change", function () {
+      state.token = tokenInput.value.trim();
+      persist();
+    });
+
+    var intervalSelect = document.getElementById("interval-select");
+    intervalSelect.value = String(state.interval);
+    intervalSelect.addEventListener("change", function () {
+      state.interval = Number(intervalSelect.value);
+      persist();
+      scheduleAuto();
+    });
+
+    document.getElementById("refresh-btn").addEventListener("click", fetchQuotes);
+
+    document.getElementById("add-btn").addEventListener("click", function () {
+      var t = document.getElementById("new-ticker").value.trim().toUpperCase();
+      var q = parseFloat(document.getElementById("new-qty").value.replace(",", "."));
+      var a = parseFloat(document.getElementById("new-avg").value.replace(",", "."));
+      if (!t) return;
+      state.positions.push({ ticker: t, qty: isNaN(q) ? 0 : q, avg: isNaN(a) ? 0 : a, last: 0, dayChangePct: null, dayChangeAbs: null, logo: null, error: null });
+      document.getElementById("new-ticker").value = "";
+      document.getElementById("new-qty").value = "";
+      document.getElementById("new-avg").value = "";
+      persist();
+      rerender();
+      fetchQuotes();
+    });
+
+    scheduleAuto();
+    fetchQuotes();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+
+  // Registra o service worker (deixa o app abrir instantâneo / funcionar como app no
+  // iPhone). Ele só cacheia os arquivos do próprio app — nunca as cotações da brapi.dev,
+  // que sempre são buscadas direto da rede.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () { /* offline/1a visita: ignora */ });
+    });
+  }
+})();
+</script>
+</body>
+</html>
